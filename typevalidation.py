@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -31,3 +31,22 @@ class FindingOut(BaseModel):
     taken_at: Optional[datetime] = None
     created_at: datetime
     image_url: str
+
+class ButterflyOut(BaseModel):
+    id: int
+    common_name: str
+    scientific_name: Optional[str] = None
+    description: Optional[str] = None
+    reproduction: Optional[str] = None
+    habitat: Optional[str] = None
+    season: Optional[str] = None
+    wingspan_min_mm: Optional[int] = Field(None, ge=0)
+    wingspan_max_mm: Optional[int] = Field(None, ge=0)
+    image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
+    tags: Optional[list] = None           # JSONB in DB
+    regions: Optional[list] = None        # JSONB in DB
+    protection_status: Optional[str] = None
+
+    class Config:
+        from_attributes = True

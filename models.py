@@ -30,6 +30,7 @@ class ButterflyPhoto(Base):
 
     user = relationship("User", back_populates="photos")
     butterfly = relationship("Butterfly", back_populates="photos")
+
 class Butterfly(Base):
     __tablename__ = "butterflies"
 
