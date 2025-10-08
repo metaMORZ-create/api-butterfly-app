@@ -10,6 +10,5 @@ def create_user(username: str, email: str, password: str):
 
 
 if __name__ == "__main__":
-   response_create_user = create_user("Moritz", "baarsmoritz79@gmail.com", "Moritz")
+   response_create_user = create_user("Moritz2", "baarsmoritz796@gmail.com", "Moritz")
    print(f"Create User: {response_create_user.status_code}")
-   print(f"\n {response_ask_question.content}")

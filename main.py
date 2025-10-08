@@ -10,3 +10,4 @@ tables.Base.metadata.create_all(bind=engine)
 
 # Routen registrieren
 app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(users.router, prefix="/findings", tags=["findings"])
