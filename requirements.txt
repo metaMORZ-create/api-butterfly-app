@@ -9,3 +9,4 @@ azure-search-documents
 psycopg2
 openai
 python-multipart>=0.0.9
+cloudinary
