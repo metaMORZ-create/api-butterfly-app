@@ -9,4 +9,5 @@ app = FastAPI()
 tables.Base.metadata.create_all(bind=engine)
 
 # Routen registrieren
+print("Für Deploy")
 app.include_router(users.router, prefix="/users", tags=["users"])
