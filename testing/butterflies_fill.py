@@ -1,23 +1,47 @@
+# scripts/seed_butterflies_query_params.py
 # -*- coding: utf-8 -*-
 import json
-import sys
 import time
 from typing import Dict, Any, Optional
-
 import requests
 
-# === Konfiguration ===
-BASE_URL = "https://web-production-97da3.up.railway.app"  # z.B. http://127.0.0.1:8000
+BASE_URL = "https://web-production-97da3.up.railway.app"  # z. B. http://127.0.0.1:8000
 CREATE_URL = f"{BASE_URL}/butterflies/create"
-LIST_URL = f"{BASE_URL}/butterflies"  # optional für Existenz-Check, falls implementiert
 TIMEOUT = 20
-API_TOKEN: Optional[str] = None  # z.B. "supersecrettoken" oder None wenn keine Auth
+API_TOKEN: Optional[str] = None
 
 HEADERS = {"Accept": "application/json"}
 if API_TOKEN:
     HEADERS["Authorization"] = f"Bearer {API_TOKEN}"
 
-# === Datensätze: 22 häufige Tagfalter in Deutschland ===
+ALLOWED_FIELDS = {
+    "common_name",
+    "scientific_name",
+    "description",
+    "reproduction",
+    "habitat",
+    "season",
+    "wingspan_min_mm",
+    "wingspan_max_mm",
+    "image_url",
+    "thumbnail_url",
+    "tags",               # <-- jetzt dabei
+    "regions",            # optional
+    "protection_status",  # optional
+}
+
+def to_query_params(payload: Dict[str, Any]) -> Dict[str, str]:
+    """Baue Query-Parameter (Strings). JSON-Felder werden als JSON-String serialisiert."""
+    params: Dict[str, str] = {}
+    for k, v in payload.items():
+        if k not in ALLOWED_FIELDS or v is None:
+            continue
+        if k in ("tags", "regions") and isinstance(v, (list, dict)):
+            params[k] = json.dumps(v, ensure_ascii=False)
+        else:
+            params[k] = str(v)
+    return params
+
 BUTTERFLIES = [
     {
         "common_name": "Tagpfauenauge",
@@ -26,7 +50,7 @@ BUTTERFLIES = [
         "habitat": "Gärten, Parks, Waldränder, offene Landschaften",
         "season": "März–Oktober (überwinternd)",
         "wingspan_min_mm": 50, "wingspan_max_mm": 60,
-        "tags": ["häufig", "Garten", "überwinternd"]
+        "tags": ["häufig", "Garten", "überwinternd"],
     },
     {
         "common_name": "Kleiner Fuchs",
@@ -35,7 +59,7 @@ BUTTERFLIES = [
         "habitat": "Siedlungsnähe, Wiesen, Wegränder, Gärten",
         "season": "März–Oktober (mehrere Generationen, überwinternd)",
         "wingspan_min_mm": 40, "wingspan_max_mm": 50,
-        "tags": ["häufig", "Brennnessel"]
+        "tags": ["häufig", "Brennnessel"],
     },
     {
         "common_name": "Admiral",
@@ -44,7 +68,7 @@ BUTTERFLIES = [
         "habitat": "Gärten, Parks, Waldränder, blütenreiche Flächen",
         "season": "Mai–Oktober",
         "wingspan_min_mm": 55, "wingspan_max_mm": 65,
-        "tags": ["Wanderfalter"]
+        "tags": ["Wanderfalter"],
     },
     {
         "common_name": "Distelfalter",
@@ -53,7 +77,7 @@ BUTTERFLIES = [
         "habitat": "Offene, trockene Lebensräume, Gärten, Brachflächen",
         "season": "Mai–Oktober (stark schwankend)",
         "wingspan_min_mm": 50, "wingspan_max_mm": 60,
-        "tags": ["Wanderfalter"]
+        "tags": ["Wanderfalter"],
     },
     {
         "common_name": "C-Falter",
@@ -62,7 +86,7 @@ BUTTERFLIES = [
         "habitat": "Waldränder, Hecken, Gärten",
         "season": "März–Oktober (überwinternd)",
         "wingspan_min_mm": 45, "wingspan_max_mm": 55,
-        "tags": ["überwinternd"]
+        "tags": ["überwinternd"],
     },
     {
         "common_name": "Zitronenfalter",
@@ -71,7 +95,7 @@ BUTTERFLIES = [
         "habitat": "Waldränder, Hecken, Gebüsche mit Faulbaum/Kreuzdorn",
         "season": "März–Oktober (überwinternd, sehr langlebig)",
         "wingspan_min_mm": 50, "wingspan_max_mm": 60,
-        "tags": ["früher Frühling", "überwinternd"]
+        "tags": ["früher Frühling", "überwinternd"],
     },
     {
         "common_name": "Kaisermantel",
@@ -80,7 +104,7 @@ BUTTERFLIES = [
         "habitat": "Lichte Wälder, Waldwiesen, Waldränder",
         "season": "Juni–August",
         "wingspan_min_mm": 55, "wingspan_max_mm": 70,
-        "tags": ["Wald"]
+        "tags": ["Wald"],
     },
     {
         "common_name": "Kleiner Perlmutterfalter",
@@ -89,7 +113,7 @@ BUTTERFLIES = [
         "habitat": "Magerrasen, Brachen, trockene Säume",
         "season": "April–Oktober (mehrere Generationen)",
         "wingspan_min_mm": 35, "wingspan_max_mm": 45,
-        "tags": ["Perlmutterfalter"]
+        "tags": ["Perlmutterfalter"],
     },
     {
         "common_name": "Schachbrett",
@@ -98,7 +122,7 @@ BUTTERFLIES = [
         "habitat": "Mager- und Fettwiesen, Wegränder",
         "season": "Juni–August",
         "wingspan_min_mm": 45, "wingspan_max_mm": 55,
-        "tags": ["Wiese"]
+        "tags": ["Wiese"],
     },
     {
         "common_name": "Waldbrettspiel",
@@ -107,7 +131,7 @@ BUTTERFLIES = [
         "habitat": "Wälder, Waldränder, Parks",
         "season": "April–Oktober (mehrere Generationen)",
         "wingspan_min_mm": 40, "wingspan_max_mm": 50,
-        "tags": ["Wald", "häufig"]
+        "tags": ["Wald", "häufig"],
     },
     {
         "common_name": "Großes Ochsenauge",
@@ -116,7 +140,7 @@ BUTTERFLIES = [
         "habitat": "Wiesen, Brachen, extensives Grünland",
         "season": "Juni–September",
         "wingspan_min_mm": 45, "wingspan_max_mm": 55,
-        "tags": ["Wiese", "sehr häufig"]
+        "tags": ["Wiese", "sehr häufig"],
     },
     {
         "common_name": "Schornsteinfeger",
@@ -125,7 +149,7 @@ BUTTERFLIES = [
         "habitat": "Feuchtere Wiesen, Saumbiotope, lichte Wälder",
         "season": "Juni–August",
         "wingspan_min_mm": 40, "wingspan_max_mm": 48,
-        "tags": ["Wiese"]
+        "tags": ["Wiese"],
     },
     {
         "common_name": "Kleines Wiesenvögelchen",
@@ -134,7 +158,7 @@ BUTTERFLIES = [
         "habitat": "Kurzrasige Wiesen, Wegränder, Trockenrasen",
         "season": "Mai–September",
         "wingspan_min_mm": 28, "wingspan_max_mm": 36,
-        "tags": ["Wiese", "klein"]
+        "tags": ["Wiese", "klein"],
     },
     {
         "common_name": "Aurorafalter",
@@ -143,7 +167,7 @@ BUTTERFLIES = [
         "habitat": "Feuchte Wiesen, Bachufer, Waldsäume",
         "season": "April–Juni",
         "wingspan_min_mm": 35, "wingspan_max_mm": 45,
-        "tags": ["Frühling"]
+        "tags": ["Frühling"],
     },
     {
         "common_name": "Großer Kohlweißling",
@@ -152,7 +176,7 @@ BUTTERFLIES = [
         "habitat": "Gärten, Äcker, Siedlungsräume",
         "season": "April–Oktober (mehrere Generationen)",
         "wingspan_min_mm": 50, "wingspan_max_mm": 65,
-        "tags": ["Weißling", "Garten"]
+        "tags": ["Weißling", "Garten"],
     },
     {
         "common_name": "Kleiner Kohlweißling",
@@ -161,7 +185,7 @@ BUTTERFLIES = [
         "habitat": "Gärten, Parks, offene Landschaft",
         "season": "April–Oktober",
         "wingspan_min_mm": 35, "wingspan_max_mm": 45,
-        "tags": ["Weißling", "sehr häufig"]
+        "tags": ["Weißling", "sehr häufig"],
     },
     {
         "common_name": "Rapsweißling",
@@ -170,7 +194,7 @@ BUTTERFLIES = [
         "habitat": "Feuchte Wiesen, Waldränder, Gärten",
         "season": "April–September",
         "wingspan_min_mm": 35, "wingspan_max_mm": 50,
-        "tags": ["Weißling"]
+        "tags": ["Weißling"],
     },
     {
         "common_name": "Baum-Weißling",
@@ -179,7 +203,7 @@ BUTTERFLIES = [
         "habitat": "Streuobst, Heckenlandschaften, Waldsäume",
         "season": "Mai–Juli",
         "wingspan_min_mm": 50, "wingspan_max_mm": 60,
-        "tags": ["Weißling"]
+        "tags": ["Weißling"],
     },
     {
         "common_name": "Hauhechel-Bläuling",
@@ -188,7 +212,7 @@ BUTTERFLIES = [
         "habitat": "Magerwiesen, Wege, Brachflächen",
         "season": "Mai–September (mehrere Generationen)",
         "wingspan_min_mm": 28, "wingspan_max_mm": 36,
-        "tags": ["Bläuling", "häufig"]
+        "tags": ["Bläuling", "häufig"],
     },
     {
         "common_name": "Faulbaum-Bläuling",
@@ -197,7 +221,7 @@ BUTTERFLIES = [
         "habitat": "Gärten, Hecken, Wälder mit Faulbaum",
         "season": "April–September (mehrere Generationen)",
         "wingspan_min_mm": 26, "wingspan_max_mm": 34,
-        "tags": ["Bläuling", "Frühling"]
+        "tags": ["Bläuling", "Frühling"],
     },
     {
         "common_name": "Landkärtchen",
@@ -206,7 +230,7 @@ BUTTERFLIES = [
         "habitat": "Feuchte Waldränder, Bachauen, Brennnesselstandorte",
         "season": "April–September (meist 2 Generationen)",
         "wingspan_min_mm": 35, "wingspan_max_mm": 44,
-        "tags": ["Saison-Polymorphismus"]
+        "tags": ["Saison-Polymorphismus"],
     },
     {
         "common_name": "Großer Fuchs",
@@ -215,46 +239,32 @@ BUTTERFLIES = [
         "habitat": "Streuobst, Hecken, Waldränder",
         "season": "März–August (überwinternd)",
         "wingspan_min_mm": 50, "wingspan_max_mm": 60,
-        "tags": ["überwinternd"]
+        "tags": ["überwinternd"],
     },
 ]
 
 def create_via_api(payload: Dict[str, Any]) -> requests.Response:
-    """
-    Ruft /butterflies/create auf.
-    Dein FastAPI-Endpoint erwartete in unserem Beispiel einfache Parameter.
-    Wir senden daher form-encoded (data=...) und serialisieren JSON-Felder als Strings.
-    """
-    data = payload.copy()
-
-    # JSON-Felder (falls im Model als JSONB) als String senden
-    for key in ("tags", "regions"):
-        if key in data and data[key] is not None:
-            data[key] = json.dumps(data[key], ensure_ascii=False)
-
-    resp = requests.post(CREATE_URL, data=data, headers=HEADERS, timeout=TIMEOUT)
-    return resp
+    params = to_query_params(payload)
+    return requests.post(CREATE_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
 
 def main():
     created, skipped, failed = 0, 0, 0
-
     for idx, row in enumerate(BUTTERFLIES, start=1):
         try:
             r = create_via_api(row)
             if r.status_code in (200, 201):
                 created += 1
-                print(f"[{idx:02}] Created: {row['common_name']}  -> {r.json()}")
+                print(f"[{idx:02}] Created: {row['common_name']} -> {r.json()}")
             elif r.status_code == 400:
                 skipped += 1
-                print(f"[{idx:02}] Skipped (exists?): {row['common_name']}  -> {r.text}")
+                print(f"[{idx:02}] Skipped (exists?): {row['common_name']} -> {r.text}")
             else:
                 failed += 1
-                print(f"[{idx:02}] Failed {r.status_code}: {row['common_name']}  -> {r.text}")
+                print(f"[{idx:02}] Failed {r.status_code}: {row['common_name']} -> {r.text}")
         except requests.RequestException as e:
             failed += 1
-            print(f"[{idx:02}] Error: {row['common_name']}  -> {e}")
-        time.sleep(0.2)  # kleine Pause, nett zur API
-
+            print(f"[{idx:02}] Error: {row['common_name']} -> {e}")
+        time.sleep(0.12)
     print(f"\nFertig. Neu erstellt: {created}, übersprungen: {skipped}, Fehler: {failed}")
 
 if __name__ == "__main__":

@@ -1,11 +1,28 @@
+# routers/butterflies.py
 from fastapi import APIRouter, Depends, HTTPException
-from typing import Annotated, Optional, List
+from typing import Annotated, Optional
 from sqlalchemy.orm import Session
+import json
+
 from db import get_db
 import models as tables
 
 router = APIRouter()
 db_dependency = Annotated[Session, Depends(get_db)]
+
+def _parse_list(raw: Optional[str]) -> Optional[list]:
+    """Akzeptiert JSON-Array oder 'a, b, c' und gibt eine Liste zurück."""
+    if not raw:
+        return None
+    # Erst versuchen, als JSON zu interpretieren
+    try:
+        val = json.loads(raw)
+        if isinstance(val, list):
+            return val
+    except json.JSONDecodeError:
+        pass
+    # Fallback: Komma-getrennte Liste
+    return [s.strip() for s in raw.split(",") if s.strip()]
 
 @router.post("/create")
 def create_butterfly(
@@ -19,9 +36,13 @@ def create_butterfly(
     wingspan_max_mm: Optional[int] = None,
     image_url: Optional[str] = None,
     thumbnail_url: Optional[str] = None,
+    # neu:
+    tags: Optional[str] = None,              # JSON-Array oder "a,b,c"
+    regions: Optional[str] = None,           # JSON-Array oder "x,y"
+    protection_status: Optional[str] = None,
     db: db_dependency = None,
 ):
-    # optional: Unique-Check auf common_name + scientific_name
+    # Unique-Check (common_name + scientific_name)
     existing = db.query(tables.Butterfly).filter(
         tables.Butterfly.common_name == common_name,
         tables.Butterfly.scientific_name == scientific_name
@@ -29,7 +50,7 @@ def create_butterfly(
     if existing:
         raise HTTPException(status_code=400, detail="Butterfly already exists")
 
-    b = tables.Butterfly(
+    obj = tables.Butterfly(
         common_name=common_name,
         scientific_name=scientific_name,
         description=description,
@@ -40,11 +61,15 @@ def create_butterfly(
         wingspan_max_mm=wingspan_max_mm,
         image_url=image_url,
         thumbnail_url=thumbnail_url,
+        # Nur setzen, wenn Spalten im Model existieren:
+        tags=_parse_list(tags) if hasattr(tables.Butterfly, "tags") else None,
+        regions=_parse_list(regions) if hasattr(tables.Butterfly, "regions") else None,
+        protection_status=protection_status if hasattr(tables.Butterfly, "protection_status") else None,
     )
-    db.add(b)
+    db.add(obj)
     db.commit()
-    db.refresh(b)
-    return {"message": "Butterfly created", "id": b.id}
+    db.refresh(obj)
+    return {"message": "Butterfly created", "id": obj.id}
 
 @router.get("/{butterfly_id}")
 def get_butterfly(butterfly_id: int, db: db_dependency):
@@ -52,4 +77,5 @@ def get_butterfly(butterfly_id: int, db: db_dependency):
     if not b:
         raise HTTPException(status_code=404, detail="Not found")
     return b
+
 
