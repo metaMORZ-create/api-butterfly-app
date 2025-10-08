@@ -3,7 +3,8 @@ uvicorn
 sqlalchemy
 pydantic
 python-dotenv
-passlib[bcrypt]
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.0
 azure-search-documents
 psycopg2
 openai
