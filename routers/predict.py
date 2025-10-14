@@ -15,6 +15,8 @@ async def classify_image(file: UploadFile):
     image_bytes = await file.read()
     try:
         species = predict_image(image_bytes)
+        if isinstance(species, str):
+            species = species.strip().title()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {e}")
     return {"filename": file.filename, "species": species}
