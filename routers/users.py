@@ -6,7 +6,7 @@ from hashing import hash_password, verify_password
 import models as tables
 from typevalidation import UserBase, LoginUser
 from fastapi import Request
-import jsoson, reprlib
+import json, reprlib
 
 router = APIRouter()
 
