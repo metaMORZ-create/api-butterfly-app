@@ -5,13 +5,24 @@ from db import get_db
 from hashing import hash_password, verify_password
 import models as tables
 from typevalidation import UserBase, LoginUser
+from fastapi import Request
+import jsoson, reprlib
 
 router = APIRouter()
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
 @router.post("/register")
-def create_user(user: UserBase, db: db_dependency):
+def create_user(user: UserBase, db: db_dependency, request: Request):
+    # Debug: zeig content-type
+    print("CT:", request.headers.get("content-type"))
+
+    # Debug: was kommt in password wirklich an?
+    pwd = user.password
+    sample = reprlib.repr(pwd)  # gekürzt, sicher ins Log
+    print("PWD TYPE:", type(pwd), "LEN CHARS:", len(str(pwd)))
+    print("PWD BYTES:", len(str(pwd).encode("utf-8")), "SAMPLE:", sample)
+
     existing_user = db.query(tables.User).filter(tables.User.username == user.username).first()
     existing_email = db.query(tables.User).filter(tables.User.email == user.email).first()
     if existing_user:
