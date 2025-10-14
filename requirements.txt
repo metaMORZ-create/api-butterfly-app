@@ -1,12 +1,16 @@
-fastapi
-uvicorn
-sqlalchemy
-pydantic
-python-dotenv
+--extra-index-url https://download.pytorch.org/whl/cpu
+fastapi==0.115.12
+uvicorn[standard]==0.30.6
+sqlalchemy==2.0.40
+pydantic==2.11.4
+python-dotenv==1.0.1
 passlib[bcrypt]==1.7.4
-bcrypt==3.2.0
-azure-search-documents
-psycopg2
-openai
-python-multipart>=0.0.9
-cloudinary
+psycopg2-binary==2.9.9
+python-multipart==0.0.20
+cloudinary==1.44.1
+numpy==2.2.6
+pillow==10.2.0
+scikit-learn>=1.5.0
+torch==2.8.0
+torchvision==0.23.0
+
