@@ -6,6 +6,7 @@ sqlalchemy==2.0.40
 pydantic==2.11.4
 python-dotenv==1.0.1
 passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
 psycopg2-binary==2.9.9
 python-multipart==0.0.20
 cloudinary==1.44.1
