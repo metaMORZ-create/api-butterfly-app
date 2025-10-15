@@ -72,13 +72,6 @@ def create_butterfly(
     db.refresh(obj)
     return {"message": "Butterfly created", "id": obj.id}
 
-@router.get("/{butterfly_id}")
-def get_butterfly(butterfly_id: int, db: db_dependency):
-    b = db.query(tables.Butterfly).get(butterfly_id)
-    if not b:
-        raise HTTPException(status_code=404, detail="Not found")
-    return b
-
 @router.get("/catalog")
 def get_catalog(
     db: db_dependency,
@@ -103,4 +96,12 @@ def get_catalog(
         "limit": limit,
         "items": items,  # FastAPI serialisiert ORM-Objekte automatisch
     }
+
+@router.get("/{butterfly_id}")
+def get_butterfly(butterfly_id: int, db: db_dependency):
+    b = db.query(tables.Butterfly).get(butterfly_id)
+    if not b:
+        raise HTTPException(status_code=404, detail="Not found")
+    return b
+
 
