@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Annotated, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 import json
 
 from db import get_db
@@ -78,4 +79,28 @@ def get_butterfly(butterfly_id: int, db: db_dependency):
         raise HTTPException(status_code=404, detail="Not found")
     return b
 
+@router.get("/catalog")
+def get_catalog(
+    db: db_dependency,
+    limit: int = 1000,     # Standard: viele Einträge, kann auf "alle" erhöht werden
+    offset: int = 0,
+):
+    """
+    Gibt den kompletten Artenkatalog zurück (optional paginiert).
+    Response: { total, offset, limit, items: [Butterfly, ...] }
+    """
+    total = db.query(func.count(tables.Butterfly.id)).scalar()
+    items = (
+        db.query(tables.Butterfly)
+        .order_by(tables.Butterfly.common_name.asc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
+    return {
+        "total": total,
+        "offset": offset,
+        "limit": limit,
+        "items": items,  # FastAPI serialisiert ORM-Objekte automatisch
+    }
 
